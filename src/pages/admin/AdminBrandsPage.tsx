@@ -72,7 +72,7 @@ export function AdminBrandsPage() {
               <button onClick={() => setShowForm(false)}><X size={20} /></button>
             </div>
             <div className="space-y-3">
-              <div><label className="block text-sm font-medium mb-1">{t('name')} *</label><input type="text" value={form.name ?? ''} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value, id: f.id || slugify(e.target.value) }))} className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-blue-500" /></div>
+              <div><label className="block text-sm font-medium mb-1">{t('name')} *</label><input type="text" value={form.name ?? ''} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value, id: editing ? f.id : slugify(e.target.value) }))} className="w-full px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-blue-500" /></div>
               {error && <p className="text-sm text-red-500">{error}</p>}
             </div>
             <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
