@@ -6,7 +6,8 @@ import { useI18n } from '@/i18n/I18nContext';
 import { formatPrice, siteConfig } from '@/config/site';
 import { supabase } from '@/lib/supabase';
 import type { Order } from '@/types';
-import { CheckCircle2, Tag, X, Copy, Check, Truck, Banknote } from 'lucide-react';
+import { CheckCircle2, Tag, X, Copy, Check, Truck, Banknote, Home, Building2 } from 'lucide-react';
+import type { DeliveryType } from '@/types';
 
 export function CheckoutPage() {
   const { items, cartSubtotal, clearCart } = useCart();
@@ -22,7 +23,8 @@ export function CheckoutPage() {
     notes: '',
   });
 
-  const [selectedWilaya, setSelectedWilaya] = useState<{ name: string; shipping_price: number } | null>(null);
+  const [selectedWilaya, setSelectedWilaya] = useState<{ name: string; shipping_price: number; desk_price: number } | null>(null);
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>('home');
   const [couponCode, setCouponCode] = useState('');
   const [couponApplied, setCouponApplied] = useState<{ discount: number; type: string } | null>(null);
   const [couponMessage, setCouponMessage] = useState('');
@@ -42,7 +44,11 @@ export function CheckoutPage() {
     );
   }
 
-  const shipping = selectedWilaya ? Number(selectedWilaya.shipping_price) : 0;
+  const shipping = selectedWilaya
+    ? deliveryType === 'home'
+      ? Number(selectedWilaya.shipping_price)
+      : Number(selectedWilaya.desk_price)
+    : 0;
   const discount = couponApplied
     ? couponApplied.type === 'percent'
       ? Math.round((cartSubtotal * couponApplied.discount) / 100)
@@ -54,7 +60,11 @@ export function CheckoutPage() {
     setFormData((prev) => ({ ...prev, wilaya_code: code }));
     const w = wilayas.find((wl) => wl.code === code);
     if (w) {
-      setSelectedWilaya({ name: lang === 'ar' ? w.name_ar : w.name_fr, shipping_price: Number(w.shipping_price) });
+      setSelectedWilaya({
+        name: lang === 'ar' ? w.name_ar : w.name_fr,
+        shipping_price: Number(w.shipping_price),
+        desk_price: Number(w.desk_price),
+      });
       setFormData((prev) => ({ ...prev, wilaya_name: w.name_fr }));
     }
   };
@@ -98,6 +108,7 @@ export function CheckoutPage() {
       customer_email: formData.customer_email,
       wilaya_code: formData.wilaya_code,
       wilaya_name: selectedWilaya.name,
+      delivery_type: deliveryType,
       address: formData.address,
       notes: formData.notes || null,
       items: JSON.stringify(items),
@@ -257,6 +268,49 @@ export function CheckoutPage() {
                   ))}
                 </select>
               </div>
+
+              {selectedWilaya && (
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium mb-2">{t('deliveryType')} *</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryType('home')}
+                      className={`flex items-center gap-3 p-3 rounded-xl border-2 text-start transition-colors ${
+                        deliveryType === 'home'
+                          ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'
+                      }`}
+                    >
+                      <Home size={20} className={deliveryType === 'home' ? 'text-blue-600' : 'text-gray-400'} />
+                      <div>
+                        <p className="text-sm font-semibold">{t('homeDelivery')}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {formatPrice(Number(selectedWilaya.shipping_price))}
+                        </p>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryType('desk')}
+                      className={`flex items-center gap-3 p-3 rounded-xl border-2 text-start transition-colors ${
+                        deliveryType === 'desk'
+                          ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'
+                      }`}
+                    >
+                      <Building2 size={20} className={deliveryType === 'desk' ? 'text-blue-600' : 'text-gray-400'} />
+                      <div>
+                        <p className="text-sm font-semibold">{t('deskDelivery')}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {formatPrice(Number(selectedWilaya.desk_price))}
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="sm:col-span-2">
                 <label className="block text-sm font-medium mb-1">{t('address')} *</label>
                 <input
