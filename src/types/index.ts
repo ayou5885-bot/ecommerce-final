@@ -52,7 +52,10 @@ export interface Wilaya {
   name_ar: string;
   name_fr: string;
   shipping_price: number;
+  desk_price: number;
 }
+
+export type DeliveryType = 'home' | 'desk';
 
 export type DiscountType = 'percent' | 'fixed';
 
@@ -86,6 +89,7 @@ export interface Order {
   customer_email: string;
   wilaya_code: string;
   wilaya_name: string;
+  delivery_type: DeliveryType;
   address: string;
   notes: string | null;
   items: OrderItem[];
