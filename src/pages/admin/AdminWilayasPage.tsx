@@ -4,17 +4,30 @@ import { useI18n } from '@/i18n/I18nContext';
 import { supabase } from '@/lib/supabase';
 import { Save } from 'lucide-react';
 
+interface Edit {
+  shipping_price?: number;
+  desk_price?: number;
+}
+
 export function AdminWilayasPage() {
   const { wilayas, loading, refetch } = useWilayas();
   const { t } = useI18n();
-  const [edits, setEdits] = useState<Record<string, number>>({});
+  const [edits, setEdits] = useState<Record<string, Edit>>({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  const setHomePrice = (code: string, value: string) => {
+    setEdits((prev) => ({ ...prev, [code]: { ...prev[code], shipping_price: Number(value) } }));
+  };
+
+  const setDeskPrice = (code: string, value: string) => {
+    setEdits((prev) => ({ ...prev, [code]: { ...prev[code], desk_price: Number(value) } }));
+  };
+
   const handleSaveAll = async () => {
     setSaving(true);
-    for (const [code, price] of Object.entries(edits)) {
-      await supabase.from('wilayas').update({ shipping_price: price }).eq('code', code);
+    for (const [code, changes] of Object.entries(edits)) {
+      await supabase.from('wilayas').update(changes).eq('code', code);
     }
     setEdits({});
     setSaving(false);
@@ -49,6 +62,7 @@ export function AdminWilayasPage() {
               <th className="p-3 text-start font-medium text-gray-500">{t('nameAr')}</th>
               <th className="p-3 text-start font-medium text-gray-500">{t('nameFr')}</th>
               <th className="p-3 text-start font-medium text-gray-500">{t('shippingPrice')} (DZD)</th>
+              <th className="p-3 text-start font-medium text-gray-500">{t('deskPrice')} (DZD)</th>
             </tr>
           </thead>
           <tbody>
@@ -60,8 +74,16 @@ export function AdminWilayasPage() {
                 <td className="p-3">
                   <input
                     type="number"
-                    value={edits[w.code] ?? Number(w.shipping_price)}
-                    onChange={(e) => setEdits((prev) => ({ ...prev, [w.code]: Number(e.target.value) }))}
+                    value={edits[w.code]?.shipping_price ?? Number(w.shipping_price)}
+                    onChange={(e) => setHomePrice(w.code, e.target.value)}
+                    className="w-32 px-2 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-blue-500"
+                  />
+                </td>
+                <td className="p-3">
+                  <input
+                    type="number"
+                    value={edits[w.code]?.desk_price ?? Number(w.desk_price)}
+                    onChange={(e) => setDeskPrice(w.code, e.target.value)}
                     className="w-32 px-2 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm outline-none focus:border-blue-500"
                   />
                 </td>
